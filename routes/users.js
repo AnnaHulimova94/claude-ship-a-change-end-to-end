@@ -35,7 +35,7 @@ router.post("/", (req, res) => {
 // PUT /users/:id — replace a user's name and email; 400 if invalid, 404 if missing
 router.put("/:id", (req, res) => {
   const id = Number(req.params.id);
-  const { name, email } = req.body;
+  const { name, email } = req.body ?? {};
 
   const isValid = (value) => typeof value === "string" && value.trim() !== "";
   if (!isValid(name) || !isValid(email)) {
@@ -44,7 +44,7 @@ router.put("/:id", (req, res) => {
       .json({ error: "name and email are required and must be non-empty strings" });
   }
 
-  const user = store.updateUser(id, { name, email });
+  const user = store.updateUser(id, { name: name.trim(), email: email.trim() });
 
   if (!user) {
     return res.status(404).json({ error: "User not found" });

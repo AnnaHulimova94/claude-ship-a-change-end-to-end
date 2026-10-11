@@ -19,8 +19,12 @@ exist and can be understood or reverted on its own. The update-user tests are gr
 commit 2.
 
 ## Review
-The review confirmed the main paths are fine: `express.json()` yields `{}` for an empty body
-(so we return 400, not a crash), a non-numeric id becomes `NaN` and returns 404, and
-malformed JSON is handled by Express (400). Findings I deliberately left alone: values are
-not trimmed before saving (same as POST), email format is not validated (out of scope), and
-`updateUser` mutates the shared in-memory object (same as the rest of the store's pattern).
+The review confirmed the main paths are fine: a non-numeric id becomes `NaN` and returns 404,
+and malformed JSON is handled by Express (400). It also caught two real issues, which I
+fixed: the handler relied on Express 4 defaulting `req.body` to `{}` (now `req.body ?? {}`,
+so it stays a 400 on Express 5), and values were validated trimmed but saved untrimmed (now
+saved trimmed). I added `tests/update-user-edge.test.js` to cover empty body, wrong types,
+blank values, non-numeric id and trimming. Findings I deliberately left alone: ids like
+`1.0` or `0x1` resolve to user 1 (same as the existing GET route), POST validation is looser
+than PUT (out of scope), email format and uniqueness are not checked, and `updateUser`
+mutates the shared in-memory object (same as the rest of the store's pattern).
